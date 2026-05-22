@@ -1,0 +1,81 @@
+# NTNU Metamaterials Workshop — Neural X-ray 4D Tomography
+
+Materials for a **~45 min live demo** at **NTNU (Trondheim, June 2026)** on neural rendering for **4D X-ray tomography** of architected materials — plus everything to **reproduce the pipeline afterward** (Colab or local GPU). The session itself is presentation-focused; expect **~1 hour+** if you run training on your own time.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/igrega348/NTNU_metamaterials_workshop/blob/main/notebooks/00_ntnu_workshop_colab.ipynb)
+[![Paper](https://img.shields.io/badge/Paper-PNAS-blue)](https://www.pnas.org/doi/10.1073/pnas.2521089122)
+[![Upstream](https://img.shields.io/badge/Code-neural__xray-green)](https://github.com/igrega348/neural_xray)
+
+## What is included
+
+| Path | Description |
+|------|-------------|
+| [`neural_xray/`](neural_xray/) | 4D X-ray neural rendering (**submodule**, includes `xray_projection_render` nested) |
+| [`fem_lattice_simulator/`](fem_lattice_simulator/) | Lattice FEM (**submodule**) |
+| [`kelvin_indent/`](kelvin_indent/) | Kelvin YAML → projections (uses `neural_xray/xray_projection_render`) |
+| [`notebooks/`](notebooks/) | Lightweight **Colab** notebook (no local install) |
+| [`docs/`](docs/) | Workshop agenda, Colab/local setup |
+| [`scripts/`](scripts/) | `setup_local.sh`, `init_submodules.sh` |
+
+Everything needed for reproducibility is version-controlled via submodule SHAs. Large artifacts (training outputs, generated synthetic data) are **not** committed; they are produced by the scripts/notebooks.
+
+## Try it after the demo (Colab)
+
+1. Open the workshop notebook in Colab (badge above) when you have **~1 hour** and a GPU runtime.
+2. **Runtime → Change runtime type → T4 GPU** (or better).
+3. Run all cells (install ~8 min + training ~30 min on T4).
+
+No local install required. Details: [`docs/SETUP_COLAB.md`](docs/SETUP_COLAB.md)
+
+**Kelvin lattice path** (FEM → render → train): see [`docs/WORKSHOP.md`](docs/WORKSHOP.md#self-paced-pipeline-kelvin-indent).
+
+## Quick start (local GPU)
+
+```bash
+git clone --recurse-submodules https://github.com/igrega348/NTNU_metamaterials_workshop.git
+cd NTNU_metamaterials_workshop
+bash scripts/setup_local.sh
+conda activate nerfstudio
+cd neural_xray && bash scripts/demo_synthetic.sh
+```
+
+Details: [`docs/SETUP_LOCAL.md`](docs/SETUP_LOCAL.md)
+
+## Live demo outline
+
+See [`docs/WORKSHOP.md`](docs/WORKSHOP.md) for the **45 min presenter schedule**, what to show pre-run, and self-paced follow-up steps.
+
+## Submodules
+
+Clone with nested dependencies:
+
+```bash
+git clone --recurse-submodules https://github.com/igrega348/NTNU_metamaterials_workshop.git
+```
+
+If needed: `bash scripts/init_submodules.sh`
+
+| Submodule | Role |
+|-----------|------|
+| [`neural_xray`](https://github.com/igrega348/neural_xray) | Training stack (also pulls in `nerfstudio`, `nerfstudio-xray`, `nerf_data`, `xray_projection_render`) |
+| [`fem_lattice_simulator`](https://github.com/igrega348/fem_lattice_simulator) | Kelvin lattice indentation FEM |
+
+Each submodule is pinned to a commit in this repo for reproducible follow-up.
+
+## Upstream project
+
+This workshop builds on **[neural_xray](https://github.com/igrega348/neural_xray)** — neural rendering for 4D X-CT (PNAS 2025). The submodule pin ensures all participants use the same code revision. To cite the method:
+
+```bibtex
+@article{grega2024highspeed,
+  title={High-speed X-ray tomography for 4D imaging},
+  author={Ivan Grega and William Whitney and Vikram Sudhir Deshpande},
+  journal={Proceedings of the National Academy of Sciences},
+  year={2025},
+  doi={10.1073/pnas.2521089122}
+}
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE). The `neural_xray` submodule retains its own license (MIT).

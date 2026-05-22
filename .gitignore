@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Training outputs and generated data (large; regenerate with scripts)
+neural_xray/outputs/
+neural_xray/data/synthetic/
+neural_xray/data/experimental/
+kelvin_indent/renders/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Colab downloads
+*.whl

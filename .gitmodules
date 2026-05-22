@@ -1,0 +1,6 @@
+[submodule "neural_xray"]
+	path = neural_xray
+	url = https://github.com/igrega348/neural_xray.git
+[submodule "fem_lattice_simulator"]
+	path = fem_lattice_simulator
+	url = https://github.com/igrega348/fem_lattice_simulator.git
