@@ -1,0 +1,37 @@
+# Colab dependency stack
+
+The Kelvin Colab notebook uses a **single pinned environment**, not per-package workarounds (`--no-deps`, manual jax installs, etc.).
+
+## Files
+
+| File | Role |
+|------|------|
+| [`requirements-colab.txt`](../requirements-colab.txt) | Pinned versions for torch, numpy, jax, protobuf |
+| [`scripts/install_colab_deps.sh`](../scripts/install_colab_deps.sh) | Installs pins, tinycudann wheel, then editable submodules |
+| [`fem_lattice_simulator/pyproject.toml`](../fem_lattice_simulator/pyproject.toml) | `numpy>=1.26,<2.0` (aligned with jax 0.6.2 and nerfstudio) |
+
+## Why numpy 1.26.x (not 2.x)
+
+| Component | numpy constraint |
+|-----------|------------------|
+| **nerfstudio** (via `nuscenes-devkit`) | `<2.0` |
+| **jax 0.6.2** | `>=1.26` (does not require 2.x) |
+| **fem_lattice_simulator** | `>=1.26,<2.0` |
+
+Previously FEM declared `numpy>=2.0.0`, which was unnecessary and conflicted with nerfstudio. JAX 0.6.2 only needs numpy ≥1.26.
+
+## Colab runtime
+
+- **Python 3.12** (runtime 2025.10 or 2026.01)
+- **T4 GPU**
+- Install cell sets `PYTHON` to the notebook kernel and runs `install_colab_deps.sh`
+
+## Updating pins
+
+1. Change `requirements-colab.txt`.
+2. Run the install script on Colab and confirm FEM + a short `train.py` smoke step.
+3. If FEM’s `pyproject.toml` changes, commit in `fem_lattice_simulator` and bump the submodule SHA in this repo.
+
+## Pip “ERROR: dependency conflicts”
+
+Colab ships tensorflow, datasets, jax 0.7, etc. Pip prints `ERROR:` when those disagree with our pins — even when install succeeds. Trust `install_colab_deps.sh` ending with `All imports OK`, not the conflict lines.

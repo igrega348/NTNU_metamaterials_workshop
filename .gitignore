@@ -27,3 +27,4 @@ fem_lattice_simulator/runs/
 
 # Colab downloads
 *.whl
+.colab-wheels/
