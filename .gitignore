@@ -6,11 +6,15 @@ __pycache__/
 venv/
 .env
 
-# Training outputs and generated data (large; regenerate with scripts)
-neural_xray/outputs/
-neural_xray/data/synthetic/
-neural_xray/data/experimental/
-kelvin_indent/renders/
+# Generated workshop artifacts (not in submodules)
+# Generated under data/kelvin/ (README and yaml/.gitkeep are tracked)
+data/kelvin/renders/
+data/kelvin/yaml/*.yaml
+data/kelvin/transforms*.json
+data/kelvin/lattice_*.yaml
+data/kelvin/images_*/
+outputs/
+fem_lattice_simulator/runs/
 
 # Jupyter
 .ipynb_checkpoints/

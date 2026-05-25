@@ -1,16 +1,13 @@
 # Notebooks
 
-## Workshop Colab (start here)
+## Kelvin lattice pipeline (workshop)
 
-| Notebook | Colab | Notes |
-|----------|-------|--------|
-| [`00_ntnu_workshop_colab.ipynb`](00_ntnu_workshop_colab.ipynb) | [Open in Colab](https://colab.research.google.com/github/igrega348/NTNU_metamaterials_workshop/blob/main/notebooks/00_ntnu_workshop_colab.ipynb) | Clones this repo + submodules; synthetic demo (~50 min on T4) |
+| Notebook | Colab | Description |
+|----------|-------|-------------|
+| [`00_ntnu_workshop_colab.ipynb`](00_ntnu_workshop_colab.ipynb) | [Open in Colab](https://colab.research.google.com/github/igrega348/NTNU_metamaterials_workshop/blob/main/notebooks/00_ntnu_workshop_colab.ipynb) | FEM indentation → X-ray projections → `neural_xray` training |
 
-## Upstream full demo
+**Not** the upstream `neural_xray` balls demo — this notebook follows the NTNU Kelvin workflow.
 
-The pinned `neural_xray` submodule also contains the original PNAS supplementary notebook (larger file, may include saved outputs):
+## Upstream reference
 
-- Path: `../neural_xray/colab/demo.ipynb`
-- Colab: https://colab.research.google.com/github/igrega348/neural_xray/blob/main/colab/demo.ipynb
-
-Use the workshop notebook for NTNU sessions; use the upstream notebook if you want parity with the paper’s public Colab link.
+[`neural_xray/colab/demo.ipynb`](../neural_xray/colab/demo.ipynb) — original PNAS supplementary notebook (synthetic balls only).

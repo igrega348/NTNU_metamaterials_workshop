@@ -12,22 +12,22 @@ Materials for a **~45 min live demo** at **NTNU (Trondheim, June 2026)** on neur
 |------|-------------|
 | [`neural_xray/`](neural_xray/) | 4D X-ray neural rendering (**submodule**, includes `xray_projection_render` nested) |
 | [`fem_lattice_simulator/`](fem_lattice_simulator/) | Lattice FEM (**submodule**) |
-| [`kelvin_indent/`](kelvin_indent/) | Kelvin YAML → projections (uses `neural_xray/xray_projection_render`) |
+| [`data/kelvin/`](data/kelvin/) | FEM YAML, renders, staged training data |
 | [`notebooks/`](notebooks/) | Lightweight **Colab** notebook (no local install) |
 | [`docs/`](docs/) | Workshop agenda, Colab/local setup |
-| [`scripts/`](scripts/) | `setup_local.sh`, `init_submodules.sh` |
+| [`data/`](data/) | Training datasets (generated; not inside submodules) |
+| [`outputs/`](outputs/) | Checkpoints and logs from `train_kelvin_workshop.sh` |
+| [`scripts/`](scripts/) | `render_projections.sh`, staging, training, `setup_local.sh` |
 
-Everything needed for reproducibility is version-controlled via submodule SHAs. Large artifacts (training outputs, generated synthetic data) are **not** committed; they are produced by the scripts/notebooks.
+Submodules are pinned for **code only**. Generated data and models go under [`data/`](data/) and [`outputs/`](outputs/) in this repo — never inside `neural_xray/`.
 
 ## Try it after the demo (Colab)
 
-1. Open the workshop notebook in Colab (badge above) when you have **~1 hour** and a GPU runtime.
-2. **Runtime → Change runtime type → T4 GPU** (or better).
-3. Run all cells (install ~8 min + training ~30 min on T4).
+1. Open the [Kelvin pipeline notebook](notebooks/00_ntnu_workshop_colab.ipynb) (badge above).
+2. **Runtime → T4 GPU** (or better).
+3. Run all cells: FEM → X-ray render → stage transforms → train.
 
-No local install required. Details: [`docs/SETUP_COLAB.md`](docs/SETUP_COLAB.md)
-
-**Kelvin lattice path** (FEM → render → train): see [`docs/WORKSHOP.md`](docs/WORKSHOP.md#self-paced-pipeline-kelvin-indent).
+Expect **1–3+ hours** end-to-end on Colab. Details: [`docs/SETUP_COLAB.md`](docs/SETUP_COLAB.md)
 
 ## Quick start (local GPU)
 
@@ -36,7 +36,8 @@ git clone --recurse-submodules https://github.com/igrega348/NTNU_metamaterials_w
 cd NTNU_metamaterials_workshop
 bash scripts/setup_local.sh
 conda activate nerfstudio
-cd neural_xray && bash scripts/demo_synthetic.sh
+# … FEM + render + stage (see data/kelvin/README.md), then:
+bash scripts/train_kelvin_workshop.sh
 ```
 
 Details: [`docs/SETUP_LOCAL.md`](docs/SETUP_LOCAL.md)
