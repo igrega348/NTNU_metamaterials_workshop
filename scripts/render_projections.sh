@@ -21,6 +21,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Colab: apt golang-go is 1.18; prefer /usr/local/go from ensure_go.sh / install_colab_deps.sh
+if [[ -x /usr/local/go/bin/go ]]; then
+  export PATH="/usr/local/go/bin:${PATH}"
+fi
 WORKSHOP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DATASET_DIR="${DATASET_DIR:-${WORKSHOP_ROOT}/data/kelvin}"
 YAML_DIR="${DATASET_DIR}/yaml"

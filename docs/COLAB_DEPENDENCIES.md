@@ -24,6 +24,7 @@ Previously FEM declared `numpy>=2.0.0`, which was unnecessary and conflicted wit
 
 - **Python 3.12** (runtime 2025.10 or 2026.01)
 - **T4 GPU** for render/train; **FEM solve uses CPU** (`JAX_PLATFORMS=cpu` in notebook cell 2)
+- **Go 1.22.10** at `/usr/local/go` (Colab `apt install golang-go` is 1.18 and cannot build `xray_projection_render`)
 - Install cell sets `PYTHON` to the notebook kernel and runs `install_colab_deps.sh`
 
 ## Updating pins
