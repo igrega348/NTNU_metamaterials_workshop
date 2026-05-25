@@ -3,12 +3,12 @@
 Package render outputs into a workshop data directory (e.g. data/kelvin/).
 Reads data/<dataset>/renders/ and yaml/; writes staged training files into --out-dir (same dataset folder).
 
-Expects render_files.sh layout:
+Expects render_projections.sh layout:
   renders/<stem>/images/proj_XX.png  (proj index matches azimuth list for intermediates)
   renders/<stem>/transforms.json
 
-Intermediate timesteps are rendered at fixed azimuths (default 8 views). For the dynamic
-training set, keeps perpendicular train views (0°, 90°) and adds a 225° projection as eval.
+Staged images use train_XX.png / eval_XX.png (required by multi-camera-dataparser
+eval_mode filename+modulo). Intermediate timesteps: train 0°/90°, eval 225°.
 """
 
 from __future__ import annotations
@@ -69,10 +69,50 @@ def _rewrite_frame(fr: dict, images_subdir: str, time: float, file_name: str | N
     return nf
 
 
-def _copy_images(src_dir: Path, dst_dir: Path) -> None:
+def _proj_name_to_train(name: str) -> str:
+    m = re.match(r"proj_(\d+)\.png$", name)
+    if m:
+        return f"train_{int(m.group(1)):02d}.png"
+    return name
+
+
+def _copy_and_rename_proj_to_train(src_dir: Path, dst_dir: Path) -> None:
+    """multi-camera-dataparser filename+modulo expects train_XX.png / eval_XX.png."""
     dst_dir.mkdir(parents=True, exist_ok=True)
-    for png in sorted(src_dir.glob("*.png")):
-        shutil.copy2(png, dst_dir / png.name)
+    for png in sorted(src_dir.glob("proj_*.png")):
+        idx = int(png.stem.split("_")[1])
+        shutil.copy2(png, dst_dir / f"train_{idx:02d}.png")
+    train_00 = dst_dir / "train_00.png"
+    if train_00.exists():
+        shutil.copy2(train_00, dst_dir / "eval_00.png")
+
+
+def _rewrite_canonical_frames(frames: list[dict], images_subdir: str, time: float) -> list[dict]:
+    out = [
+        _rewrite_frame(fr, images_subdir, time, file_name=_proj_name_to_train(Path(fr["file_path"]).name))
+        for fr in frames
+    ]
+    if out:
+        eval_fr = dict(out[0])
+        eval_fr["file_path"] = f"{images_subdir}/eval_00.png"
+        out.append(eval_fr)
+    return out
+
+
+def _stage_intermediate_images(
+    src_images: Path,
+    dst_dir: Path,
+    train_azimuths: list[float],
+    eval_azimuth: float,
+    azimuth_list: list[float],
+    frames: list[dict],
+) -> None:
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    for train_idx, az in enumerate(train_azimuths):
+        fr = _frame_at_azimuth(frames, az, azimuth_list)
+        src = src_images / Path(fr["file_path"]).name
+        shutil.copy2(src, dst_dir / f"train_{train_idx:02d}.png")
+    _copy_eval_at_azimuth(src_images, dst_dir, eval_azimuth, azimuth_list, frames)
 
 
 def _copy_eval_at_azimuth(
@@ -127,10 +167,10 @@ def main() -> None:
     for stem, tag, t_val in ((t0_stem, "00", 0.0), (t1_stem, f"{t1:02d}", 1.0)):
         src_render = args.renders_dir / stem
         img_dir = args.out_dir / f"images_{tag}"
-        _copy_images(src_render / "images", img_dir)
+        _copy_and_rename_proj_to_train(src_render / "images", img_dir)
 
         tr = _load_transforms(src_render / "transforms.json")
-        frames = [_rewrite_frame(fr, f"images_{tag}", t_val) for fr in tr["frames"]]
+        frames = _rewrite_canonical_frames(tr["frames"], f"images_{tag}", t_val)
         tr_out = {k: v for k, v in tr.items() if k != "frames"}
         tr_out["frames"] = frames
         (args.out_dir / f"transforms_{tag}.json").write_text(json.dumps(tr_out, indent=2))
@@ -149,23 +189,25 @@ def main() -> None:
         tag = f"{step:02d}"
         src_render = args.renders_dir / stem
         img_dir = args.out_dir / f"images_{tag}"
-        _copy_images(src_render / "images", img_dir)
-
         tr = _load_transforms(src_render / "transforms.json")
 
         if stem in (t0_stem, t1_stem):
-            all_frames.extend(_rewrite_frame(fr, f"images_{tag}", t_norm) for fr in tr["frames"])
+            _copy_and_rename_proj_to_train(src_render / "images", img_dir)
+            all_frames.extend(_rewrite_canonical_frames(tr["frames"], f"images_{tag}", t_norm))
         else:
-            for az in train_azimuths:
-                fr = _frame_at_azimuth(tr["frames"], az, azimuth_list)
-                all_frames.append(_rewrite_frame(fr, f"images_{tag}", t_norm))
-            _copy_eval_at_azimuth(
+            _stage_intermediate_images(
                 src_render / "images",
                 img_dir,
+                train_azimuths,
                 args.dynamic_eval_azimuth,
                 azimuth_list,
                 tr["frames"],
             )
+            for train_idx, az in enumerate(train_azimuths):
+                fr = _frame_at_azimuth(tr["frames"], az, azimuth_list)
+                all_frames.append(
+                    _rewrite_frame(fr, f"images_{tag}", t_norm, file_name=f"train_{train_idx:02d}.png")
+                )
             fr_eval = _frame_at_azimuth(tr["frames"], args.dynamic_eval_azimuth, azimuth_list)
             all_frames.append(
                 _rewrite_frame(fr_eval, f"images_{tag}", t_norm, file_name="eval_00.png")
