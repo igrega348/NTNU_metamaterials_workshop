@@ -23,6 +23,7 @@ fem_lattice_simulator/runs/
 .DS_Store
 .idea/
 .vscode/
+.cursor/
 
 # Colab downloads
 *.whl
