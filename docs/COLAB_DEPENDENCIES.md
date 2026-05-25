@@ -23,7 +23,7 @@ Previously FEM declared `numpy>=2.0.0`, which was unnecessary and conflicted wit
 ## Colab runtime
 
 - **Python 3.12** (runtime 2025.10 or 2026.01)
-- **T4 GPU**
+- **T4 GPU** for render/train; **FEM solve uses CPU** (`JAX_PLATFORMS=cpu` in notebook cell 2)
 - Install cell sets `PYTHON` to the notebook kernel and runs `install_colab_deps.sh`
 
 ## Updating pins
@@ -34,4 +34,4 @@ Previously FEM declared `numpy>=2.0.0`, which was unnecessary and conflicted wit
 
 ## Pip “ERROR: dependency conflicts”
 
-Colab ships tensorflow, datasets, jax 0.7, etc. Pip prints `ERROR:` when those disagree with our pins — even when install succeeds. Trust `install_colab_deps.sh` ending with `All imports OK`, not the conflict lines.
+Colab’s pre-installed stack may print `ERROR:` during install. Ignore if the script ends with **`All imports OK`**. If you see **`fem-lattice-simulator requires numpy>=2.0`**, restart the runtime and re-run cell 1 (stale pip metadata from an old run).

@@ -17,6 +17,16 @@ echo "Workshop root: ${REPO}"
 echo "Python: ${PYTHON}"
 "${PYTHON}" -c "import sys; assert sys.version_info[:2] == (3, 12), f'Need Python 3.12, got {sys.version}'"
 
+if ! grep -q 'numpy>=1.26,<2.0' "${REPO}/fem_lattice_simulator/pyproject.toml"; then
+  echo "error: fem_lattice_simulator submodule too old — need numpy>=1.26,<2.0" >&2
+  exit 1
+fi
+
+# Stale editable installs from earlier Colab runs confuse pip (old fem numpy>=2 metadata).
+echo "==> Remove stale workshop packages"
+${PIP} uninstall -y \
+  fem-lattice-simulator nerfstudio nerf-xray xray-renderer tinycudann 2>/dev/null || true
+
 echo "==> Base pins (requirements-colab.txt)"
 ${PIP} install -q --upgrade pip
 ${PIP} install -q -r "${REPO}/requirements-colab.txt"
