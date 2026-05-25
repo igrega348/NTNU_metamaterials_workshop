@@ -6,7 +6,7 @@ All workshop artifacts for this experiment live under this folder.
 data/kelvin/
 ├── yaml/           # FEM-exported scene YAML per timestep (copy or symlink from fem runs)
 ├── renders/        # X-ray projections from scripts/render_projections.sh
-├── transforms_*.json, images_*/, lattice_*.yaml   # after scripts/stage_kelvin_for_nerf.py
+├── transforms_*.json, images_*/, lattice_*.npz   # after scripts/stage_kelvin_for_nerf.py
 ```
 
 Checkpoints: `outputs/kelvin/` (not here).
@@ -36,11 +36,10 @@ bash scripts/render_projections.sh
 ```bash
 python scripts/stage_kelvin_for_nerf.py \
   --renders-dir data/kelvin/renders \
-  --yaml-dir data/kelvin/yaml \
   --out-dir data/kelvin
 ```
 
-Writes training layout into this directory (0°/90° train views, 225° eval on intermediates).
+Writes training layout into this directory (0°/90° train views, 225° eval on intermediates). Canonical grids are `lattice_00.npz` / `lattice_XX.npz` converted from `renders/*/volume_stage/volume.raw` via `neural_xray/nerf_data/scripts/raw_to_npy.py` (same voxel resolution as `VOLUME_RES` in `render_projections.sh`, default 128).
 
 ## 4. Train
 

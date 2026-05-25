@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Package render outputs into a workshop data directory (e.g. data/kelvin/).
-Reads data/<dataset>/renders/ and yaml/; writes staged training files into --out-dir (same dataset folder).
+Reads data/<dataset>/renders/; writes staged training files into --out-dir (same dataset folder).
+Canonical volume grids: renders/<stem>/volume_stage/volume.raw → lattice_XX.npz (via neural_xray raw_to_npy.py).
 
 Expects render_projections.sh layout:
   renders/<stem>/images/proj_XX.png  (proj index matches azimuth list for intermediates)
@@ -17,6 +18,8 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -115,6 +118,36 @@ def _stage_intermediate_images(
     _copy_eval_at_azimuth(src_images, dst_dir, eval_azimuth, azimuth_list, frames)
 
 
+def _convert_volume_raw_to_npz(
+    raw_path: Path,
+    npz_path: Path,
+    resolution: int,
+    workshop_root: Path,
+) -> None:
+    """Convert xray_projection_render volume.raw to compressed npz for fast VoxelGrid loading."""
+    script = workshop_root / "neural_xray/nerf_data/scripts/raw_to_npy.py"
+    if not script.is_file():
+        raise FileNotFoundError(script)
+    if not raw_path.is_file():
+        raise FileNotFoundError(
+            f"{raw_path} missing — re-run render_projections.sh (voxel export) for this timestep"
+        )
+    res = (resolution, resolution, resolution)
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--input",
+            str(raw_path),
+            "--resolution",
+            *map(str, res),
+            "--output",
+            str(npz_path),
+        ],
+        check=True,
+    )
+
+
 def _copy_eval_at_azimuth(
     src_images: Path,
     dst_dir: Path,
@@ -130,8 +163,19 @@ def _copy_eval_at_azimuth(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--renders-dir", type=Path, required=True)
-    parser.add_argument("--yaml-dir", type=Path, required=True)
+    parser.add_argument(
+        "--yaml-dir",
+        type=Path,
+        default=None,
+        help="Optional; unused for training grids (volume comes from renders volume.raw)",
+    )
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument(
+        "--volume-res",
+        type=int,
+        default=128,
+        help="Voxel resolution of volume.raw (must match VOLUME_RES in render_projections.sh)",
+    )
     parser.add_argument(
         "--intermediate-azimuths",
         default="0,90,45,135,180,225,270,315",
@@ -149,6 +193,7 @@ def main() -> None:
         help="View copied to eval_00.png for intermediate timesteps",
     )
     args = parser.parse_args()
+    workshop_root = Path(__file__).resolve().parents[1]
 
     azimuth_list = _parse_float_list(args.intermediate_azimuths)
     train_azimuths = _parse_float_list(args.dynamic_train_azimuths)
@@ -175,10 +220,13 @@ def main() -> None:
         tr_out["frames"] = frames
         (args.out_dir / f"transforms_{tag}.json").write_text(json.dumps(tr_out, indent=2))
 
-        yaml_src = args.yaml_dir / f"{stem}.yaml"
-        if not yaml_src.exists():
-            raise FileNotFoundError(yaml_src)
-        shutil.copy2(yaml_src, args.out_dir / f"lattice_{tag}.yaml")
+        volume_raw = src_render / "volume_stage" / "volume.raw"
+        lattice_npz = args.out_dir / f"lattice_{tag}.npz"
+        if lattice_npz.exists():
+            print(f"  skip {lattice_npz.name} (already exists)")
+        else:
+            print(f"  {volume_raw.name} -> {lattice_npz.name}")
+            _convert_volume_raw_to_npz(volume_raw, lattice_npz, args.volume_res, workshop_root)
 
     combined = _load_transforms(args.renders_dir / t0_stem / "transforms.json")
     all_frames: list[dict] = []
@@ -218,7 +266,7 @@ def main() -> None:
     (args.out_dir / out_name).write_text(json.dumps(combined, indent=2))
 
     print(f"Staged dataset at {args.out_dir}")
-    print(f"  canonical: all projections on {t0_stem} and {t1_stem}")
+    print(f"  canonical: all projections + lattice_*.npz on {t0_stem} and {t1_stem}")
     print(f"  dynamic intermediates: train azimuths {train_azimuths}, eval {args.dynamic_eval_azimuth}°")
     print(f"  {len(all_frames)} frames in {out_name}")
 

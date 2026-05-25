@@ -27,7 +27,7 @@
 ```text
 fem_lattice_simulator  →  copy YAML to data/kelvin/yaml/
 scripts/render_projections.sh  →  data/kelvin/renders/
-scripts/stage_kelvin_for_nerf.py  →  data/kelvin/ (transforms, images, lattice_*.yaml)
+scripts/stage_kelvin_for_nerf.py  →  data/kelvin/ (transforms, images, lattice_*.npz from volume.raw)
 scripts/train_kelvin_workshop.sh  →  outputs/kelvin/
 ```
 

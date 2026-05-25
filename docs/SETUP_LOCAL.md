@@ -24,7 +24,6 @@ bash scripts/render_projections.sh
 
 python scripts/stage_kelvin_for_nerf.py \
   --renders-dir data/kelvin/renders \
-  --yaml-dir data/kelvin/yaml \
   --out-dir data/kelvin
 
 bash scripts/train_kelvin_workshop.sh

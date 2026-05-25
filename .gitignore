@@ -12,6 +12,7 @@ data/kelvin/renders/
 data/kelvin/yaml/*.yaml
 data/kelvin/transforms*.json
 data/kelvin/lattice_*.yaml
+data/kelvin/lattice_*.npz
 data/kelvin/images_*/
 outputs/
 fem_lattice_simulator/runs/

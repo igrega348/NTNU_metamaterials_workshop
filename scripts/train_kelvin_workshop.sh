@@ -18,8 +18,12 @@ fi
 DATA0="$(find "${DATA_DIR}" -maxdepth 1 -regex '.*/transforms_[0-9]+\.json' | sort -V | head -n 1)"
 DATA1="$(find "${DATA_DIR}" -maxdepth 1 -regex '.*/transforms_[0-9]+\.json' | sort -V | tail -n 1)"
 DATAALL="$(find "${DATA_DIR}" -maxdepth 1 -regex '.*/transforms_.*_to_.*\.json' | head -n 1)"
-GRID0="$(find "${DATA_DIR}" -maxdepth 1 -name 'lattice_*.yaml' | sort -V | head -n 1)"
-GRID1="$(find "${DATA_DIR}" -maxdepth 1 -name 'lattice_*.yaml' | sort -V | tail -n 1)"
+GRID0="$(find "${DATA_DIR}" -maxdepth 1 -name 'lattice_*.npz' | sort -V | head -n 1)"
+GRID1="$(find "${DATA_DIR}" -maxdepth 1 -name 'lattice_*.npz' | sort -V | tail -n 1)"
+if [[ -z "${GRID0}" || -z "${GRID1}" ]]; then
+  echo "error: missing lattice_*.npz under ${DATA_DIR} — run stage_kelvin_for_nerf.py (converts volume.raw from renders)" >&2
+  exit 1
+fi
 
 BATCH_SIZE=2048
 BATCH_SIZE_VF=256
