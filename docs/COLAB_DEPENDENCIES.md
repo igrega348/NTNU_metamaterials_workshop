@@ -33,6 +33,14 @@ Previously FEM declared `numpy>=2.0.0`, which was unnecessary and conflicted wit
 2. Run the install script on Colab and confirm FEM + a short `train.py` smoke step.
 3. If FEM’s `pyproject.toml` changes, commit in `fem_lattice_simulator` and bump the submodule SHA in this repo.
 
+## Eval image downscale (`images_XX_2/`)
+
+Training passes `multi-camera-dataparser --downscale-factors.val 2` (same as `neural_xray/scripts/run_dset.sh`). Val/test splits load **`images_XX_2/eval_00.png`**, not full-res `images_XX/eval_00.png`.
+
+`train_kelvin_workshop.sh` runs `scripts/resize_kelvin_for_eval.sh` before training (same as `neural_xray/scripts/run_dset.sh`).
+
+If you see `FileNotFoundError: .../images_00_2/eval_00.png`, run training again or manually: `bash scripts/resize_kelvin_for_eval.sh` from the repo root.
+
 ## Pip “ERROR: dependency conflicts”
 
 Colab’s pre-installed stack may print `ERROR:` during install. Ignore if the script ends with **`All imports OK`**. If you see **`fem-lattice-simulator requires numpy>=2.0`**, restart the runtime and re-run cell 1 (stale pip metadata from an old run).

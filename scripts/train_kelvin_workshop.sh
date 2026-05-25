@@ -41,6 +41,10 @@ echo "dataall=${DATAALL}"
 echo "grid0=${GRID0}"
 echo "grid1=${GRID1}"
 
+# val/test splits load eval images from images_XX_<factor>/ (see multi_camera_dataparser).
+echo "Creating eval downscale folders (factor ${DOWNSCALE_FACTOR})..."
+bash "${SCRIPT_DIR}/resize_kelvin_for_eval.sh"
+
 python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
   --data "${DATA0}" \
   --output_dir "${OUTPUT_DIR}" \
