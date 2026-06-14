@@ -26,7 +26,8 @@ if [[ -x /usr/local/go/bin/go ]]; then
   export PATH="/usr/local/go/bin:${PATH}"
 fi
 WORKSHOP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DATASET_DIR="${DATASET_DIR:-${WORKSHOP_ROOT}/data/kelvin}"
+# Resolve to absolute path — the Go renderer cd's into its own dir, breaking relative paths
+DATASET_DIR="$(cd "${DATASET_DIR:-${WORKSHOP_ROOT}/data/kelvin}" && pwd)"
 YAML_DIR="${DATASET_DIR}/yaml"
 RENDERS_DIR="${DATASET_DIR}/renders"
 XRAY_DIR="${WORKSHOP_ROOT}/neural_xray/xray_projection_render"
@@ -61,7 +62,7 @@ if [[ "${do_clear}" -eq 1 ]]; then
   exit 0
 fi
 
-VOLUME_RES="${VOLUME_RES:-128}"
+VOLUME_RES="${VOLUME_RES:-512}"
 RESOLUTION="${RESOLUTION:-512}"
 NUM_PROJECTIONS_CANONICAL="${NUM_PROJECTIONS_CANONICAL:-32}"
 INTERMEDIATE_AZIMUTHAL_ANGLES="${INTERMEDIATE_AZIMUTHAL_ANGLES:-0,90,45,135,180,225,270,315}"
@@ -70,6 +71,7 @@ CAMERA_R="${CAMERA_R:-4}"
 FOV_DEG="${FOV_DEG:-40}"
 FORCE_VOXEL_EXPORT="${FORCE_VOXEL_EXPORT:-0}"
 YAML_GLOB="${YAML_GLOB:-*_t*.yaml}"
+USE_CUDA="${USE_CUDA:-1}"   # 1 = use CUDA-compiled binary for both stages
 
 if [[ ! -d "${XRAY_DIR}" ]]; then
   echo "error: xray_projection_render not found at ${XRAY_DIR}" >&2
@@ -101,6 +103,17 @@ echo "Renderer: ${XRAY_DIR}"
 
 cd "${XRAY_DIR}"
 
+# Pick renderer: CUDA precompiled binary or plain go run.
+if [[ "${USE_CUDA}" == "1" ]] && [[ -x "${XRAY_DIR}/xray_render_cuda" ]]; then
+  RENDERER="${XRAY_DIR}/xray_render_cuda"
+  CUDA_FLAG="--use_cuda"
+  echo "Using CUDA renderer: ${RENDERER}"
+else
+  RENDERER="go run ."
+  CUDA_FLAG=""
+  echo "Using CPU renderer (go run .)"
+fi
+
 for yaml_path in "${yaml_files[@]}"; do
   stem="$(basename "${yaml_path}" .yaml)"
   out_root="${RENDERS_DIR}/${stem}"
@@ -116,12 +129,12 @@ for yaml_path in "${yaml_files[@]}"; do
 
   if [[ "${FORCE_VOXEL_EXPORT}" == "1" ]] || [[ ! -f "${volume_raw}" ]]; then
     echo "    [1/2] Exporting voxel grid..."
-    go run . \
+    ${RENDERER} \
       --input "${yaml_path}" \
       --output_dir "${vol_images}" \
       --num_projections 0 \
       --resolution "${VOLUME_RES}" \
-      --export_volume \
+      --export_volume ${CUDA_FLAG} \
       --transforms_file "${vol_stage}/transforms_volume_export.json" \
       --R "${CAMERA_R}" \
       --fov "${FOV_DEG}" \
@@ -147,7 +160,7 @@ EOF
 
   echo "    [2/2] Rendering projections..."
   if [[ "${stem}" == "${FIRST_STEM}" || "${stem}" == "${LAST_STEM}" ]]; then
-    go run . \
+    ${RENDERER} \
       --input "${voxel_desc}" \
       --output_dir "${final_images}" \
       --num_projections "${NUM_PROJECTIONS_CANONICAL}" \
@@ -155,9 +168,9 @@ EOF
       --fname_pattern 'proj_%02d.png' \
       --transforms_file "${out_root}/transforms.json" \
       --R "${CAMERA_R}" \
-      --fov "${FOV_DEG}"
+      --fov "${FOV_DEG}" ${CUDA_FLAG}
   else
-    go run . \
+    ${RENDERER} \
       --input "${voxel_desc}" \
       --output_dir "${final_images}" \
       --azimuthal_angles "${INTERMEDIATE_AZIMUTHAL_ANGLES}" \
@@ -166,7 +179,7 @@ EOF
       --fname_pattern 'proj_%02d.png' \
       --transforms_file "${out_root}/transforms.json" \
       --R "${CAMERA_R}" \
-      --fov "${FOV_DEG}"
+      --fov "${FOV_DEG}" ${CUDA_FLAG}
   fi
 done
 
