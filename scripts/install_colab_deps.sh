@@ -36,6 +36,9 @@ echo "==> Base pins (requirements-colab.txt)"
 ${PIP} install -q --upgrade pip
 ${PIP} install -q -r "${REPO}/requirements-colab.txt"
 
+echo "==> tyro (nerfstudio CLI dependency — not pre-installed in Colab)"
+${PIP} install -q "tyro<=0.8.12"
+
 echo "==> tinycudann (prebuilt wheel)"
 WHEEL_DIR="${REPO}/.colab-wheels"
 mkdir -p "${WHEEL_DIR}"
