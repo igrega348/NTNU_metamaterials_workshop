@@ -173,7 +173,7 @@ def main() -> None:
     parser.add_argument(
         "--volume-res",
         type=int,
-        default=128,
+        default=1024,
         help="Voxel resolution of volume.raw (must match VOLUME_RES in render_projections.sh)",
     )
     parser.add_argument(

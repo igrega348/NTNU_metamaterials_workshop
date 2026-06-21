@@ -29,7 +29,7 @@ BATCH_SIZE=2048
 BATCH_SIZE_VF=256
 VF_NUM_SAMPLES_PER_RAY=256
 NUMSTEPS=2000
-DOWNSCALE_FACTOR=2
+DOWNSCALE_FACTOR=4
 WEIGHT_NN_WIDTH=20
 EVAL_BATCH_SIZE=$((BATCH_SIZE / 2))
 EVAL_BATCH_SIZE_VF=$((BATCH_SIZE_VF / 2))
@@ -89,19 +89,26 @@ python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
   --timestamp "canonical_B" \
   multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
 
+VFIELD_RES_6_LRPW=1e-3
+VFIELD_RES_6_WUS=1000
+VFIELD_RES_12_LRPW=1e-3
+VFIELD_RES_12_WUS=200
+N_MIX_FIELD=6
+
+# --- vel_6 ---
 N1=6
-STEPS="${NUMSTEPS}"
-PADSTEPS=$(printf '%09d' "${STEPS}")
+STEPS_VF6="${NUMSTEPS}"
+PADSTEPS_VF6=$(printf '%09d' "${STEPS_VF6}")
 mkdir -p "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models"
 
-if [[ ! -f "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS}.ckpt" ]]; then
+if [[ ! -f "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS_VF6}.ckpt" ]]; then
   python "${NX_ROOT}/nerfstudio-xray/nerf-xray/nerf_xray/combine_forward_backward_checkpoints.py" \
-    --fwd_ckpt "${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_F/nerfstudio_models/step-${PADSTEPS}.ckpt" \
-    --bwd_ckpt "${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_B/nerfstudio_models/step-${PADSTEPS}.ckpt" \
-    --out_fn "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS}.ckpt"
-  LOAD_OPTIMIZER=False
+    --fwd_ckpt "${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_F/nerfstudio_models/step-${PADSTEPS_VF6}.ckpt" \
+    --bwd_ckpt "${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_B/nerfstudio_models/step-${PADSTEPS_VF6}.ckpt" \
+    --out_fn "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS_VF6}.ckpt"
+  LOAD_OPTIMIZER_VF6=False
 else
-  LOAD_OPTIMIZER=True
+  LOAD_OPTIMIZER_VF6=True
 fi
 
 python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
@@ -111,8 +118,8 @@ python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
   --steps_per_eval_image 500 \
   --steps_per_save 250 \
   --logging.local-writer.max-log-size 10 \
-  --load-checkpoint "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS}.ckpt" \
-  --load-optimizer "${LOAD_OPTIMIZER}" \
+  --load-checkpoint "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/nerfstudio_models/step-${PADSTEPS_VF6}.ckpt" \
+  --load-optimizer "${LOAD_OPTIMIZER_VF6}" \
   --pipeline.volumetric_supervision True \
   --pipeline.volumetric_supervision_coefficient 1e-4 \
   --pipeline.volumetric_supervision_start_step $((NUMSTEPS + 1000)) \
@@ -123,11 +130,113 @@ python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
   --pipeline.model.deformation_field.timedelta 0.1 \
   --pipeline.model.deformation_field.displacement_method "${BSPLINE_METHOD}" \
   --pipeline.model.flat_field_trainable False \
+  --pipeline.model.train_field_weighing False \
   --pipeline.model.disable_mixing True \
   --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE_VF}" \
   --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE_VF}" \
+  --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE_VF}" \
   --pipeline.model.num_nerf_samples_per_ray "${VF_NUM_SAMPLES_PER_RAY}" \
+  --optimizers.fields.optimizer.lr 1e-4 \
+  --optimizers.fields.optimizer.weight_decay 1e-1 \
+  --optimizers.fields.scheduler.lr_pre_warmup "${VFIELD_RES_6_LRPW}" \
+  --optimizers.fields.scheduler.lr_final 1e-6 \
+  --optimizers.fields.scheduler.warmup_steps "${VFIELD_RES_6_WUS}" \
+  --optimizers.fields.scheduler.steady_steps $((NUMSTEPS - 1000)) \
+  --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
   --timestamp "vel_${N1}" \
+  --machine.seed 40 \
+  multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+
+# --- vel_12 ---
+N2=12
+STEPS_VF12_INIT=$((NUMSTEPS * 2))   # step name of the refine_vfield output (init ckpt)
+STEPS_VF12_FINAL=$((NUMSTEPS * 3))  # step name after vel_12 training completes
+PADSTEPS_VF12_INIT=$(printf '%09d' "${STEPS_VF12_INIT}")
+PADSTEPS_VF12_FINAL=$(printf '%09d' "${STEPS_VF12_FINAL}")
+mkdir -p "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N2}/nerfstudio_models"
+
+if [[ ! -f "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_INIT}.ckpt" ]]; then
+  python "${NX_ROOT}/nerfstudio-xray/nerf-xray/nerf_xray/refine_vfield.py" \
+    --load-config "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N1}/config.yml" \
+    --new-resolution "${N2}" \
+    --new-nn-width "${WEIGHT_NN_WIDTH}" \
+    --out-path "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_INIT}.ckpt"
+  LOAD_OPTIMIZER_VF12=False
+else
+  LOAD_OPTIMIZER_VF12=False
+fi
+
+python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
+  --data "${DATAALL}" \
+  --output_dir "${OUTPUT_DIR}" \
+  --max-num-iterations "${NUMSTEPS}" \
+  --steps_per_eval_image 500 \
+  --steps_per_save 250 \
+  --logging.local-writer.max-log-size 10 \
+  --load-checkpoint "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_INIT}.ckpt" \
+  --load-optimizer "${LOAD_OPTIMIZER_VF12}" \
+  --pipeline.volumetric_supervision True \
+  --pipeline.volumetric_supervision_coefficient 1e-4 \
+  --pipeline.volumetric_supervision_start_step $((NUMSTEPS + 1000)) \
+  --pipeline.datamanager.init_volume_grid_file "${GRID0}" \
+  --pipeline.datamanager.final_volume_grid_file "${GRID1}" \
+  --pipeline.model.deformation_field.num_control_points "${N2}" "${N2}" "${N2}" \
+  --pipeline.model.deformation_field.weight_nn_width "${WEIGHT_NN_WIDTH}" \
+  --pipeline.model.deformation_field.timedelta 0.1 \
+  --pipeline.model.deformation_field.displacement_method "${BSPLINE_METHOD}" \
+  --pipeline.model.flat_field_trainable False \
+  --pipeline.model.train_field_weighing False \
+  --pipeline.model.disable_mixing True \
+  --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE_VF}" \
+  --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE_VF}" \
+  --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE_VF}" \
+  --pipeline.model.num_nerf_samples_per_ray "${VF_NUM_SAMPLES_PER_RAY}" \
+  --optimizers.fields.optimizer.lr 1e-4 \
+  --optimizers.fields.optimizer.weight_decay 1e-1 \
+  --optimizers.fields.scheduler.lr_pre_warmup "${VFIELD_RES_12_LRPW}" \
+  --optimizers.fields.scheduler.lr_final 1e-6 \
+  --optimizers.fields.scheduler.warmup_steps "${VFIELD_RES_12_WUS}" \
+  --optimizers.fields.scheduler.steady_steps $((NUMSTEPS - 1000)) \
+  --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
+  --timestamp "vel_${N2}" \
+  --machine.seed 40 \
+  multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+
+# --- spatiotemporal_mix ---
+mkdir -p "${OUTPUT_DIR}/${DSET}/spatiotemporal_mix/vel_${N2}/nerfstudio_models"
+cp "${OUTPUT_DIR}/${DSET}/xray_vfield/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_FINAL}.ckpt" \
+   "${OUTPUT_DIR}/${DSET}/spatiotemporal_mix/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_FINAL}.ckpt"
+
+python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" spatiotemporal_mix \
+  --data "${DATAALL}" \
+  --output_dir "${OUTPUT_DIR}" \
+  --max-num-iterations "${NUMSTEPS}" \
+  --steps_per_eval_image 500 \
+  --steps_per_save 250 \
+  --logging.local-writer.max-log-size 10 \
+  --load-checkpoint "${OUTPUT_DIR}/${DSET}/spatiotemporal_mix/vel_${N2}/nerfstudio_models/step-${PADSTEPS_VF12_FINAL}.ckpt" \
+  --load-optimizer False \
+  --pipeline.volumetric_supervision False \
+  --pipeline.datamanager.init_volume_grid_file "${GRID0}" \
+  --pipeline.datamanager.final_volume_grid_file "${GRID1}" \
+  --pipeline.model.field_weighing.num_control_points "${N_MIX_FIELD}" "${N_MIX_FIELD}" "${N_MIX_FIELD}" \
+  --pipeline.model.deformation_field.num_control_points "${N2}" "${N2}" "${N2}" \
+  --pipeline.model.deformation_field.weight_nn_width "${WEIGHT_NN_WIDTH}" \
+  --pipeline.model.deformation_field.timedelta 0.1 \
+  --pipeline.model.deformation_field.displacement_method "${BSPLINE_METHOD}" \
+  --pipeline.model.flat_field_trainable False \
+  --pipeline.model.train_field_weighing True \
+  --pipeline.model.disable_mixing False \
+  --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE_VF}" \
+  --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE_VF}" \
+  --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE_VF}" \
+  --pipeline.model.num_nerf_samples_per_ray "${VF_NUM_SAMPLES_PER_RAY}" \
+  --optimizers.field_weighing.optimizer.lr 1e-2 \
+  --optimizers.field_weighing.optimizer.weight_decay 1e-1 \
+  --optimizers.field_weighing.scheduler.steady_steps 2000 \
+  --optimizers.field_weighing.scheduler.max_steps "${NUMSTEPS}" \
+  --optimizers.field_weighing.scheduler.warmup_steps 200 \
+  --timestamp "vel_${N2}" \
   --machine.seed 40 \
   multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
 

@@ -13,18 +13,21 @@ Checkpoints: `outputs/kelvin/` (not here).
 
 ## 1. FEM → YAML
 
+Run from the repo root. `YAML_OUTDIR` copies the exported YAMLs directly into `data/kelvin/yaml/` — no manual copy needed.
+
 ```bash
 cd fem_lattice_simulator
-RUN_NAME=workshop_colab ./run_pipeline.sh   # or run steps manually
-cp runs/${RUN_NAME}/yaml/*.yaml ../data/kelvin/yaml/
+YAML_OUTDIR=../data/kelvin/yaml RUN_NAME=workshop_local ./run_pipeline.sh
+cd ..
 ```
 
 ## 2. Render projections
 
 ```bash
 bash scripts/render_projections.sh
-# optional: DATASET_DIR=/path/to/data/kelvin YAML_GLOB='workshop_colab_t*.yaml'
 ```
+
+Defaults: `VOLUME_RES=1024`, `RESOLUTION=1024`, CUDA renderer if available. Override with env vars.
 
 | Timestep | Views |
 |----------|--------|
@@ -39,7 +42,7 @@ python scripts/stage_kelvin_for_nerf.py \
   --out-dir data/kelvin
 ```
 
-Writes training layout into this directory (0°/90° train views, 225° eval on intermediates). Canonical grids are `lattice_00.npz` / `lattice_XX.npz` converted from `renders/*/volume_stage/volume.raw` via `neural_xray/nerf_data/scripts/raw_to_npy.py` (same voxel resolution as `VOLUME_RES` in `render_projections.sh`, default 128).
+Writes training layout into this directory (0°/90° train views, 225° eval on intermediates). Canonical grids are `lattice_00.npz` / `lattice_XX.npz` converted from `renders/*/volume_stage/volume.raw` via `neural_xray/nerf_data/scripts/raw_to_npy.py`. `--volume-res` defaults to 1024 matching `render_projections.sh`.
 
 ## 4. Train
 
