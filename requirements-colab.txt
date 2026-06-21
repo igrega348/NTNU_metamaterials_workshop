@@ -28,4 +28,7 @@ meshio
 matplotlib
 pyyaml>=6.0.3
 
+# nerfstudio deps not reliably pre-installed in Colab
+tyro<=0.8.12
+
 # tinycudann: install wheel in install_colab_deps.sh (platform-specific URL)
