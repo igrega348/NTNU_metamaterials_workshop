@@ -17,10 +17,6 @@ echo "Workshop root: ${REPO}"
 echo "Python: ${PYTHON}"
 "${PYTHON}" -c "import sys; assert sys.version_info[:2] == (3, 12), f'Need Python 3.12, got {sys.version}'"
 
-echo "==> Go (>= 1.22 for xray_projection_render)"
-# shellcheck source=ensure_go.sh
-source "${SCRIPT_DIR}/ensure_go.sh"
-export PATH="${GO_ROOT:-/usr/local/go}/bin:${PATH}"
 
 if ! grep -q 'numpy>=1.26' "${REPO}/fem_lattice_simulator/pyproject.toml"; then
   echo "error: fem_lattice_simulator submodule too old — need numpy>=1.26" >&2
