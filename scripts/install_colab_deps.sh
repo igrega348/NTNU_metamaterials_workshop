@@ -22,8 +22,8 @@ echo "==> Go (>= 1.22 for xray_projection_render)"
 source "${SCRIPT_DIR}/ensure_go.sh"
 export PATH="${GO_ROOT:-/usr/local/go}/bin:${PATH}"
 
-if ! grep -q 'numpy>=1.26,<2.0' "${REPO}/fem_lattice_simulator/pyproject.toml"; then
-  echo "error: fem_lattice_simulator submodule too old — need numpy>=1.26,<2.0" >&2
+if ! grep -q 'numpy>=1.26' "${REPO}/fem_lattice_simulator/pyproject.toml"; then
+  echo "error: fem_lattice_simulator submodule too old — need numpy>=1.26" >&2
   exit 1
 fi
 
