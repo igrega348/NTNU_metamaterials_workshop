@@ -11,7 +11,7 @@ PYTHON="${PYTHON:-python3}"
 PIP="${PYTHON} -m pip"
 
 TCNN_WHEEL="tinycudann-2.0.post75260124-cp312-cp312-linux_x86_64.whl"
-TCNN_URL="https://github.com/igrega348/tiny-cuda-nn-wheels/releases/download/1.7.3/${TCNN_WHEEL}"
+TCNN_URL="https://github.com/igrega348/tiny-cuda-nn-wheels/releases/download/1.7.4/${TCNN_WHEEL}"
 
 echo "Workshop root: ${REPO}"
 echo "Python: ${PYTHON}"

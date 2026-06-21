@@ -52,45 +52,57 @@ echo "grid1=${GRID1}"
 echo "Creating eval downscale folders (factor ${DOWNSCALE_FACTOR})..."
 bash "${SCRIPT_DIR}/resize_kelvin_for_eval.sh"
 
-python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
-  --data "${DATA0}" \
-  --output_dir "${OUTPUT_DIR}" \
-  --logging.local-writer.max-log-size 10 \
-  --pipeline.volumetric_supervision True \
-  --pipeline.volumetric_supervision_coefficient 1e-3 \
-  --pipeline.datamanager.volume_grid_file "${GRID0}" \
-  --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE}" \
-  --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE}" \
-  --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE}" \
-  --pipeline.model.flat_field_trainable False \
-  --max-num-iterations $((NUMSTEPS + 1)) \
-  --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
-  --optimizers.fields.scheduler.lr_final 1e-4 \
-  --optimizers.fields.scheduler.warmup_steps 50 \
-  --optimizers.fields.scheduler.steady_steps 2000 \
-  --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
-  --timestamp "canonical_F" \
-  multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+PADSTEPS_CANONICAL=$(printf '%09d' "${NUMSTEPS}")
+CKPT_F="${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_F/nerfstudio_models/step-${PADSTEPS_CANONICAL}.ckpt"
+CKPT_B="${OUTPUT_DIR}/${DSET}/nerf_xray/canonical_B/nerfstudio_models/step-${PADSTEPS_CANONICAL}.ckpt"
 
-python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
-  --data "${DATA1}" \
-  --output_dir "${OUTPUT_DIR}" \
-  --logging.local-writer.max-log-size 10 \
-  --pipeline.volumetric_supervision True \
-  --pipeline.volumetric_supervision_coefficient 1e-3 \
-  --pipeline.datamanager.volume_grid_file "${GRID1}" \
-  --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE}" \
-  --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE}" \
-  --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE}" \
-  --pipeline.model.flat_field_trainable False \
-  --max-num-iterations $((NUMSTEPS + 1)) \
-  --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
-  --optimizers.fields.scheduler.lr_final 1e-4 \
-  --optimizers.fields.scheduler.warmup_steps 50 \
-  --optimizers.fields.scheduler.steady_steps 2000 \
-  --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
-  --timestamp "canonical_B" \
-  multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+if [[ -f "${CKPT_F}" ]]; then
+  echo "Skipping canonical_F training — checkpoint exists: ${CKPT_F}"
+else
+  python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
+    --data "${DATA0}" \
+    --output_dir "${OUTPUT_DIR}" \
+    --logging.local-writer.max-log-size 10 \
+    --pipeline.volumetric_supervision True \
+    --pipeline.volumetric_supervision_coefficient 1e-3 \
+    --pipeline.datamanager.volume_grid_file "${GRID0}" \
+    --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE}" \
+    --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE}" \
+    --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE}" \
+    --pipeline.model.flat_field_trainable False \
+    --max-num-iterations $((NUMSTEPS + 1)) \
+    --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
+    --optimizers.fields.scheduler.lr_final 1e-4 \
+    --optimizers.fields.scheduler.warmup_steps 50 \
+    --optimizers.fields.scheduler.steady_steps 2000 \
+    --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
+    --timestamp "canonical_F" \
+    multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+fi
+
+if [[ -f "${CKPT_B}" ]]; then
+  echo "Skipping canonical_B training — checkpoint exists: ${CKPT_B}"
+else
+  python "${NX_ROOT}/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
+    --data "${DATA1}" \
+    --output_dir "${OUTPUT_DIR}" \
+    --logging.local-writer.max-log-size 10 \
+    --pipeline.volumetric_supervision True \
+    --pipeline.volumetric_supervision_coefficient 1e-3 \
+    --pipeline.datamanager.volume_grid_file "${GRID1}" \
+    --pipeline.datamanager.train_num_rays_per_batch "${BATCH_SIZE}" \
+    --pipeline.datamanager.eval_num_rays_per_batch "${EVAL_BATCH_SIZE}" \
+    --pipeline.model.eval_num_rays_per_chunk "${EVAL_BATCH_SIZE}" \
+    --pipeline.model.flat_field_trainable False \
+    --max-num-iterations $((NUMSTEPS + 1)) \
+    --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
+    --optimizers.fields.scheduler.lr_final 1e-4 \
+    --optimizers.fields.scheduler.warmup_steps 50 \
+    --optimizers.fields.scheduler.steady_steps 2000 \
+    --optimizers.fields.scheduler.max_steps "${NUMSTEPS}" \
+    --timestamp "canonical_B" \
+    multi-camera-dataparser --downscale-factors.val "${DOWNSCALE_FACTOR}" --downscale-factors.test "${DOWNSCALE_FACTOR}"
+fi
 
 VFIELD_RES_6_LRPW=1e-3
 VFIELD_RES_6_WUS=1000
