@@ -111,8 +111,8 @@ def parse_args():
     p.add_argument('--rhomax',     type=float, default=None,
                    help='Density normalisation (auto-detected from first model if not set)')
     p.add_argument('--device',     default='cuda' if torch.cuda.is_available() else 'cpu')
-    p.add_argument('--out-xsec',  type=Path, default=Path('eval_xsections.png'))
-    p.add_argument('--out-mix',   type=Path, default=Path('eval_mixing.png'))
+    p.add_argument('--out-xsec',  type=Path, default=Path('outputs/kelvin/eval_xsections.png'))
+    p.add_argument('--out-mix',   type=Path, default=Path('outputs/kelvin/eval_mixing.png'))
     return p.parse_args()
 
 
