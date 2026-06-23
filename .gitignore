@@ -20,6 +20,12 @@ fem_lattice_simulator/runs/
 # Jupyter
 .ipynb_checkpoints/
 
+# Local session / agent context files
+SESSION.md
+CLAUDE.md
+AGENTS.md
+eval_*.png
+
 # OS / editor
 .DS_Store
 .idea/
