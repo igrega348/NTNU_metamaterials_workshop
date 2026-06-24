@@ -16,7 +16,7 @@ fi
 DATA_DIR="${WORKSHOP_ROOT}/data/kelvin_${DATASET}"
 echo "DATASET: ${DATASET} (${DATA_DIR})"
 
-DSET="${DSET:-kelvin_${DATASET}_$(date +%Y%m%d_%H%M%S)}"
+DSET="${DSET:-kelvin_${DATASET}}"
 echo "DSET: ${DSET}"
 OUTPUT_DIR="${WORKSHOP_ROOT}/outputs"
 
