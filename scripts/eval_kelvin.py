@@ -113,6 +113,10 @@ def parse_args():
     p.add_argument('--device',     default='cuda' if torch.cuda.is_available() else 'cpu')
     p.add_argument('--out-xsec',  type=Path, default=Path('outputs/kelvin/eval_xsections.png'))
     p.add_argument('--out-mix',   type=Path, default=Path('outputs/kelvin/eval_mixing.png'))
+    p.add_argument('--models', nargs='+',
+                   choices=['vel_6', 'vel_9', 'spatiotemporal_mix'],
+                   default=['vel_6', 'vel_9', 'spatiotemporal_mix'],
+                   help='Which models to evaluate (default: all three)')
     return p.parse_args()
 
 
@@ -125,8 +129,8 @@ def main():
 
     configs = {
         'vel_6':              args.output_dir / 'xray_vfield/vel_6/config.yml',
-        'vel_12':             args.output_dir / 'xray_vfield/vel_12/config.yml',
-        'spatiotemporal_mix': args.output_dir / 'spatiotemporal_mix/vel_12/config.yml',
+        'vel_9':              args.output_dir / 'xray_vfield/vel_9/config.yml',
+        'spatiotemporal_mix': args.output_dir / 'spatiotemporal_mix/vel_9/config.yml',
     }
 
     # ── GT slices ─────────────────────────────────────────────────────────────
@@ -146,6 +150,9 @@ def main():
     rhomax = args.rhomax  # may be None → auto-detect from first model
 
     for name, config_yml in configs.items():
+        if name not in args.models:
+            model_slices[name] = [np.zeros((args.resolution, args.resolution)) for _ in timesteps]
+            continue
         if not config_yml.exists():
             print(f'[skip] {name}: {config_yml} not found')
             model_slices[name] = [np.zeros((args.resolution, args.resolution))
@@ -180,12 +187,10 @@ def main():
 
     # ── Figure 1: cross-sections ──────────────────────────────────────────────
     print('\nPlotting cross-sections...')
-    rows = [
-        ('vel_6',              model_slices['vel_6']),
-        ('vel_12',             model_slices['vel_12']),
-        ('spatiotemporal mix', model_slices['spatiotemporal_mix']),
-        (gt_label,             gt_slices),
-    ]
+    label_map = {'vel_6': 'vel_6', 'vel_9': 'vel_9', 'spatiotemporal_mix': 'spatiotemporal mix'}
+    rows = [(label_map[m], model_slices[m]) for m in ['vel_6', 'vel_9', 'spatiotemporal_mix']
+            if m in args.models]
+    rows.append((gt_label, gt_slices))
     n_rows = len(rows)
 
     fig, axes = plt.subplots(n_rows, n_t,

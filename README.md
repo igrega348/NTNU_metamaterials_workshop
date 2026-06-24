@@ -77,6 +77,18 @@ This workshop builds on **[neural_xray](https://github.com/igrega348/neural_xray
 }
 ```
 
+## Workshop activity ideas
+
+Once you have the pipeline running, try extending it. Each idea below builds on the existing scripts and is sized for a self-paced follow-up session.
+
+1. **Try a new loading condition.** Use [`fem_lattice_simulator/`](fem_lattice_simulator/) to simulate a different deformation — for example, shear instead of indentation — then re-render and retrain the NeRF on the new sequence with `scripts/train_kelvin_workshop.sh`. Compare the learned deformation against the original.
+
+2. **Render a spiral space-time trajectory.** Query the trained spatiotemporal model along a path where the camera rotates continuously while time also advances — one projection per timestamp, tracing a helix through (angle, t) space. This produces a view of the lattice deforming from a smoothly sweeping viewpoint that no single static camera could capture.
+
+3. **Change the material or geometry.** Edit the FEM model to alter the material behaviour (Young's modulus, Poisson ratio) or swap in a different lattice geometry. Re-run the pipeline and observe how the trained velocity field responds to a stiffer, softer, or topologically different structure.
+
+4. **Visualise the deformation field and Jacobians.** Using the trained velocity and mixing fields, sample the deformation across the volume and plot derived quantities — e.g. how the local volume change (det J of the deformation gradient) evolves over the compression sequence. This exposes where the lattice compacts versus where it preserves volume. Start from `scripts/eval_kelvin.py`.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). The `neural_xray` submodule retains its own license (MIT).
