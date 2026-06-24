@@ -6,8 +6,20 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSHOP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 NX_ROOT="${WORKSHOP_ROOT}/neural_xray"
-DATA_DIR="${WORKSHOP_ROOT}/data/kelvin"
-DSET="${DSET:-kelvin_$(date +%Y%m%d_%H%M%S)}"
+
+# Select dataset: DATASET=indentation (default) or DATASET=uniform
+DATASET="${DATASET:-indentation}"
+if [[ "${DATASET}" == "uniform" ]]; then
+  DATA_DIR="${WORKSHOP_ROOT}/data/kelvin_uniform"
+elif [[ "${DATASET}" == "indentation" ]]; then
+  DATA_DIR="${WORKSHOP_ROOT}/data/kelvin"
+else
+  echo "error: unknown DATASET '${DATASET}' — use 'indentation' or 'uniform'" >&2
+  exit 1
+fi
+echo "DATASET: ${DATASET} (${DATA_DIR})"
+
+DSET="${DSET:-kelvin_${DATASET}_$(date +%Y%m%d_%H%M%S)}"
 echo "DSET: ${DSET}"
 OUTPUT_DIR="${WORKSHOP_ROOT}/outputs"
 

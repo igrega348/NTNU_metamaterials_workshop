@@ -14,6 +14,11 @@ data/kelvin/transforms*.json
 data/kelvin/lattice_*.yaml
 data/kelvin/lattice_*.npz
 data/kelvin/images_*/
+# Generated under data/kelvin_uniform/ (yaml/ is tracked)
+data/kelvin_uniform/renders/
+data/kelvin_uniform/transforms*.json
+data/kelvin_uniform/lattice_*.npz
+data/kelvin_uniform/images_*/
 outputs/
 fem_lattice_simulator/runs/
 
