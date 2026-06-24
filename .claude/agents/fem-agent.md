@@ -156,10 +156,10 @@ uv run python scripts/json_to_yaml.py \
 
 ### Connecting FEM → renderer
 
-After `json_to_yaml.py`, copy YAMLs to `data/kelvin/yaml/`:
+After `json_to_yaml.py`, copy YAMLs to `data/kelvin_indentation/yaml/`:
 
 ```bash
-cp runs/my_run/yaml/*.yaml ../../data/kelvin/yaml/
+cp runs/my_run/yaml/*.yaml ../../data/kelvin_indentation/yaml/
 YAML_GLOB="my_run_t*.yaml" bash ../../scripts/render_projections.sh
 ```
 

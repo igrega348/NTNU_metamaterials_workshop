@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Package render outputs into a workshop data directory (e.g. data/kelvin/).
+Package render outputs into a workshop data directory (e.g. data/kelvin_indentation/).
 Reads data/<dataset>/renders/; writes staged training files into --out-dir (same dataset folder).
 Canonical volume grids: renders/<stem>/volume_stage/volume.raw → lattice_XX.npz (via neural_xray raw_to_npy.py).
 

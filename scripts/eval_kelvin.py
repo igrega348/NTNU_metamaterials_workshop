@@ -101,8 +101,8 @@ def get_mixing_curve(pipeline, n_times: int = 51, n_pts: int = 4096, device: str
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('--output-dir', type=Path, default=Path('outputs/kelvin'))
-    p.add_argument('--data-dir',   type=Path, default=Path('data/kelvin'))
+    p.add_argument('--output-dir', type=Path, default=Path('outputs/kelvin_indentation'))
+    p.add_argument('--data-dir',   type=Path, default=Path('data/kelvin_indentation'))
     p.add_argument('--nx-root',    type=Path, default=Path('neural_xray'))
     p.add_argument('--timesteps',  type=float, nargs='+',
                    default=[0.0, 0.2, 0.5, 0.8, 1.0])
@@ -111,8 +111,8 @@ def parse_args():
     p.add_argument('--rhomax',     type=float, default=None,
                    help='Density normalisation (auto-detected from first model if not set)')
     p.add_argument('--device',     default='cuda' if torch.cuda.is_available() else 'cpu')
-    p.add_argument('--out-xsec',  type=Path, default=Path('outputs/kelvin/eval_xsections.png'))
-    p.add_argument('--out-mix',   type=Path, default=Path('outputs/kelvin/eval_mixing.png'))
+    p.add_argument('--out-xsec',  type=Path, default=Path('outputs/kelvin_indentation/eval_xsections.png'))
+    p.add_argument('--out-mix',   type=Path, default=Path('outputs/kelvin_indentation/eval_mixing.png'))
     p.add_argument('--models', nargs='+',
                    choices=['vel_6', 'vel_9', 'spatiotemporal_mix'],
                    default=['vel_6', 'vel_9', 'spatiotemporal_mix'],

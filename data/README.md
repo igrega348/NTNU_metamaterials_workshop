@@ -4,13 +4,13 @@ Generated inputs and training datasets live here. Submodules (`neural_xray`, `fe
 
 ```
 data/
-└── kelvin/              # Kelvin lattice indentation experiment
+└── kelvin_indentation/              # Kelvin lattice indentation experiment
     ├── yaml/            # FEM scene YAML per timestep
     ├── renders/         # raw X-ray projections
     └── …                # staged transforms + images (after stage_kelvin_for_nerf.py)
 
 outputs/
-└── kelvin/              # neural_xray training checkpoints
+└── kelvin_indentation/              # neural_xray training checkpoints
 ```
 
-See [`kelvin/README.md`](kelvin/README.md) for the full pipeline.
+See [`kelvin_indentation/README.md`](kelvin_indentation/README.md) for the full pipeline.

@@ -7,13 +7,13 @@ venv/
 .env
 
 # Generated workshop artifacts (not in submodules)
-# Generated under data/kelvin/ (README and yaml/.gitkeep are tracked)
-data/kelvin/renders/
-data/kelvin/yaml/*.yaml
-data/kelvin/transforms*.json
-data/kelvin/lattice_*.yaml
-data/kelvin/lattice_*.npz
-data/kelvin/images_*/
+# Generated under data/kelvin_indentation/ (README and yaml/.gitkeep are tracked)
+data/kelvin_indentation/renders/
+data/kelvin_indentation/yaml/*.yaml
+data/kelvin_indentation/transforms*.json
+data/kelvin_indentation/lattice_*.yaml
+data/kelvin_indentation/lattice_*.npz
+data/kelvin_indentation/images_*/
 # Generated under data/kelvin_uniform/ (yaml/ is tracked)
 data/kelvin_uniform/renders/
 data/kelvin_uniform/transforms*.json
@@ -40,4 +40,5 @@ eval_*.png
 # Colab downloads
 *.whl
 .colab-wheels/
+data/kelvin_indentation_participant_data.tar.gz
 data/kelvin_participant_data.tar.gz

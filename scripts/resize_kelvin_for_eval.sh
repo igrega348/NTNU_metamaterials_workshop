@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSHOP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 NX_ROOT="${WORKSHOP_ROOT}/neural_xray"
 RESIZE_SCRIPT="${NX_ROOT}/nerf_data/scripts/resize_for_eval.py"
-DATA_DIR="${DATA_DIR:-${WORKSHOP_ROOT}/data/kelvin}"
+DATA_DIR="${DATA_DIR:-${WORKSHOP_ROOT}/data/kelvin_indentation}"
 DOWNSCALE_FACTOR="${DOWNSCALE_FACTOR:-4}"
 
 if [[ ! -f "${RESIZE_SCRIPT}" ]]; then

@@ -5,7 +5,7 @@ import os
 import numpy as np
 from scipy.ndimage import zoom
 
-files = sorted(glob.glob("data/kelvin/lattice_*.npz"))
+files = sorted(glob.glob("data/kelvin_indentation/lattice_*.npz"))
 print(f"Found {len(files)} files")
 
 for f in files:

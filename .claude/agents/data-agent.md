@@ -86,7 +86,7 @@ Standard nerfstudio-style JSON, extended with a `time` field per frame:
 ### File naming convention
 
 ```
-data/kelvin/
+data/kelvin_indentation/
   images_00/          # timestep 0  (t=0.0)  — 32 train + 1 eval (canonical endpoint)
     train_00.png … train_31.png
     eval_00.png
@@ -196,7 +196,7 @@ Key CLI flags:
 
 ```bash
 # From repo root (defaults shown — VOLUME_RES and RESOLUTION default to 1024):
-DATASET_DIR=data/kelvin \
+DATASET_DIR=data/kelvin_indentation \
 VOLUME_RES=1024 \
 RESOLUTION=1024 \
 NUM_PROJECTIONS_CANONICAL=32 \
@@ -205,7 +205,7 @@ USE_CUDA=1 \
 bash scripts/render_projections.sh
 ```
 
-Reads YAMLs from `data/kelvin/yaml/*_t*.yaml`, writes renders to `data/kelvin/renders/<stem>/`.
+Reads YAMLs from `data/kelvin_indentation/yaml/*_t*.yaml`, writes renders to `data/kelvin_indentation/renders/<stem>/`.
 Two-stage per timestep: YAML→voxel (stage 1), voxel→projections (stage 2). Skips stage 1 if `volume.raw` already exists (use `FORCE_VOXEL_EXPORT=1` to re-export).
 
 ### Staging renders for nerfstudio (scripts/stage_kelvin_for_nerf.py)
@@ -213,8 +213,8 @@ Two-stage per timestep: YAML→voxel (stage 1), voxel→projections (stage 2). S
 After rendering, run:
 ```bash
 python scripts/stage_kelvin_for_nerf.py \
-  --renders-dir data/kelvin/renders \
-  --out-dir data/kelvin \
+  --renders-dir data/kelvin_indentation/renders \
+  --out-dir data/kelvin_indentation \
   --volume-res 1024
 ```
 

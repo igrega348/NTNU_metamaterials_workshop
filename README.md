@@ -12,7 +12,7 @@ Materials for a **~45 min live demo** at **NTNU (Trondheim, June 2026)** on neur
 |------|-------------|
 | [`neural_xray/`](neural_xray/) | 4D X-ray neural rendering (**submodule**, includes `xray_projection_render` nested) |
 | [`fem_lattice_simulator/`](fem_lattice_simulator/) | Lattice FEM (**submodule**) |
-| [`data/kelvin/`](data/kelvin/) | FEM YAML, renders, staged training data |
+| [`data/kelvin_indentation/`](data/kelvin_indentation/) | FEM YAML, renders, staged training data |
 | [`notebooks/`](notebooks/) | Lightweight **Colab** notebook (no local install) |
 | [`docs/`](docs/) | Workshop agenda, Colab/local setup |
 | [`data/`](data/) | Training datasets (generated; not inside submodules) |
@@ -36,7 +36,7 @@ git clone --recurse-submodules https://github.com/igrega348/NTNU_metamaterials_w
 cd NTNU_metamaterials_workshop
 bash scripts/setup_local.sh
 conda activate nerfstudio
-# … FEM + render + stage (see data/kelvin/README.md), then:
+# … FEM + render + stage (see data/kelvin_indentation/README.md), then:
 bash scripts/train_kelvin_workshop.sh
 ```
 

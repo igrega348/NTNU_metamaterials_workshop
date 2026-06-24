@@ -47,11 +47,11 @@ WEIGHT_NN_WIDTH=20
 
 ```bash
 python nerfstudio/nerfstudio/scripts/train.py nerf_xray \
-  --data data/kelvin/transforms_00.json \
+  --data data/kelvin_indentation/transforms_00.json \
   --output_dir outputs/ \
   --pipeline.volumetric_supervision True \
   --pipeline.volumetric_supervision_coefficient 1e-3 \
-  --pipeline.datamanager.volume_grid_file data/kelvin/lattice_00.npz \
+  --pipeline.datamanager.volume_grid_file data/kelvin_indentation/lattice_00.npz \
   --pipeline.datamanager.train_num_rays_per_batch 2048 \
   --pipeline.datamanager.eval_num_rays_per_batch 1024 \
   --pipeline.model.eval_num_rays_per_chunk 1024 \
@@ -70,8 +70,8 @@ Repeat with `transforms_20.json` / `lattice_20.npz` / `--timestamp canonical_B`.
 
 Checkpoints land at:
 ```
-outputs/kelvin/nerf_xray/canonical_F/nerfstudio_models/step-000002000.ckpt
-outputs/kelvin/nerf_xray/canonical_B/nerfstudio_models/step-000002000.ckpt
+outputs/kelvin_indentation/nerf_xray/canonical_F/nerfstudio_models/step-000002000.ckpt
+outputs/kelvin_indentation/nerf_xray/canonical_B/nerfstudio_models/step-000002000.ckpt
 ```
 
 ### Stage 3: Velocity field res-6
@@ -80,20 +80,20 @@ Combine canonical checkpoints, then train:
 
 ```bash
 python nerfstudio-xray/nerf-xray/nerf_xray/combine_forward_backward_checkpoints.py \
-  --fwd_ckpt outputs/kelvin/nerf_xray/canonical_F/nerfstudio_models/step-000002000.ckpt \
-  --bwd_ckpt outputs/kelvin/nerf_xray/canonical_B/nerfstudio_models/step-000002000.ckpt \
-  --out_fn   outputs/kelvin/xray_vfield/vel_6/nerfstudio_models/step-000002000.ckpt
+  --fwd_ckpt outputs/kelvin_indentation/nerf_xray/canonical_F/nerfstudio_models/step-000002000.ckpt \
+  --bwd_ckpt outputs/kelvin_indentation/nerf_xray/canonical_B/nerfstudio_models/step-000002000.ckpt \
+  --out_fn   outputs/kelvin_indentation/xray_vfield/vel_6/nerfstudio_models/step-000002000.ckpt
 
 python nerfstudio/nerfstudio/scripts/train.py xray_vfield \
-  --data data/kelvin/transforms_00_to_20.json \
+  --data data/kelvin_indentation/transforms_00_to_20.json \
   --output_dir outputs/ \
-  --load-checkpoint outputs/kelvin/xray_vfield/vel_6/nerfstudio_models/step-000002000.ckpt \
+  --load-checkpoint outputs/kelvin_indentation/xray_vfield/vel_6/nerfstudio_models/step-000002000.ckpt \
   --load-optimizer False \
   --pipeline.volumetric_supervision True \
   --pipeline.volumetric_supervision_coefficient 1e-4 \
   --pipeline.volumetric_supervision_start_step 3000 \
-  --pipeline.datamanager.init_volume_grid_file data/kelvin/lattice_00.npz \
-  --pipeline.datamanager.final_volume_grid_file data/kelvin/lattice_20.npz \
+  --pipeline.datamanager.init_volume_grid_file data/kelvin_indentation/lattice_00.npz \
+  --pipeline.datamanager.final_volume_grid_file data/kelvin_indentation/lattice_20.npz \
   --pipeline.model.deformation_field.num_control_points 6 6 6 \
   --pipeline.model.deformation_field.weight_nn_width 20 \
   --pipeline.model.deformation_field.timedelta 0.1 \
@@ -129,15 +129,15 @@ Refine vel_6 → vel_12 checkpoint, then train. **Note: vel_12 checkpoint step =
 
 ```bash
 python nerfstudio-xray/nerf-xray/nerf_xray/refine_vfield.py \
-  --load-config outputs/kelvin/xray_vfield/vel_6/config.yml \
+  --load-config outputs/kelvin_indentation/xray_vfield/vel_6/config.yml \
   --new-resolution 12 \
   --new-nn-width 20 \
-  --out-path outputs/kelvin/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt
+  --out-path outputs/kelvin_indentation/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt
 
 python nerfstudio/nerfstudio/scripts/train.py xray_vfield \
-  --data data/kelvin/transforms_00_to_20.json \
+  --data data/kelvin_indentation/transforms_00_to_20.json \
   --output_dir outputs/ \
-  --load-checkpoint outputs/kelvin/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt \
+  --load-checkpoint outputs/kelvin_indentation/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt \
   --load-optimizer False \
   # ... same args as vel_6 but:
   --pipeline.model.deformation_field.num_control_points 12 12 12 \
@@ -153,13 +153,13 @@ python nerfstudio/nerfstudio/scripts/train.py xray_vfield \
 Copies vel_12 checkpoint into a `spatiotemporal_mix/` subdir, then trains the blending field:
 
 ```bash
-cp outputs/kelvin/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt \
-   outputs/kelvin/spatiotemporal_mix/vel_12/nerfstudio_models/step-000004000.ckpt
+cp outputs/kelvin_indentation/xray_vfield/vel_12/nerfstudio_models/step-000004000.ckpt \
+   outputs/kelvin_indentation/spatiotemporal_mix/vel_12/nerfstudio_models/step-000004000.ckpt
 
 python nerfstudio/nerfstudio/scripts/train.py spatiotemporal_mix \
-  --data data/kelvin/transforms_00_to_20.json \
+  --data data/kelvin_indentation/transforms_00_to_20.json \
   --output_dir outputs/ \
-  --load-checkpoint outputs/kelvin/spatiotemporal_mix/vel_12/nerfstudio_models/step-000004000.ckpt \
+  --load-checkpoint outputs/kelvin_indentation/spatiotemporal_mix/vel_12/nerfstudio_models/step-000004000.ckpt \
   --load-optimizer False \
   --pipeline.volumetric_supervision False \
   --pipeline.model.field_weighing.num_control_points 6 6 6 \
@@ -180,7 +180,7 @@ python nerfstudio/nerfstudio/scripts/train.py spatiotemporal_mix \
   multi-camera-dataparser --downscale-factors.val 4 --downscale-factors.test 4
 ```
 
-Output checkpoint: `outputs/kelvin/spatiotemporal_mix/vel_12/nerfstudio_models/`
+Output checkpoint: `outputs/kelvin_indentation/spatiotemporal_mix/vel_12/nerfstudio_models/`
 
 ### MultiCameraDataParser key options
 

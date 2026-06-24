@@ -18,23 +18,23 @@ conda activate nerfstudio
 ## 3. Kelvin pipeline
 
 ```bash
-# FEM → copy YAML to data/kelvin/yaml/
+# FEM → copy YAML to data/kelvin_indentation/yaml/
 # then:
 bash scripts/render_projections.sh
 
 python scripts/stage_kelvin_for_nerf.py \
-  --renders-dir data/kelvin/renders \
+  --renders-dir data/kelvin_indentation/renders \
   --out-dir data/kelvin
 
 bash scripts/train_kelvin_workshop.sh
 ```
 
-- **Data:** `data/kelvin/`  
-- **Outputs:** `outputs/kelvin/`  
+- **Data:** `data/kelvin_indentation/`  
+- **Outputs:** `outputs/kelvin_indentation/`  
 - **Code:** `neural_xray/` submodule only
 
 ```bash
-tensorboard --logdir outputs/kelvin/
+tensorboard --logdir outputs/kelvin_indentation/
 ```
 
-See [`data/kelvin/README.md`](../data/kelvin/README.md).
+See [`data/kelvin_indentation/README.md`](../data/kelvin_indentation/README.md).

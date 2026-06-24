@@ -11,7 +11,7 @@
 #   Intermediate: INTERMEDIATE_AZIMUTHAL_ANGLES (default 8 views; train 0°/90°, eval 225° after staging)
 #
 # Environment:
-#   DATASET_DIR      default: <repo>/data/kelvin
+#   DATASET_DIR      default: <repo>/data/kelvin_indentation
 #   YAML_GLOB        under data/<dataset>/yaml/ (default: *_t*.yaml)
 #   VOLUME_RES, RESOLUTION, NUM_PROJECTIONS_CANONICAL, INTERMEDIATE_* , CAMERA_R, FOV_DEG
 #   FORCE_VOXEL_EXPORT=1
@@ -27,7 +27,7 @@ if [[ -x /usr/local/go/bin/go ]]; then
 fi
 WORKSHOP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # Resolve to absolute path — the Go renderer cd's into its own dir, breaking relative paths
-DATASET_DIR="$(cd "${DATASET_DIR:-${WORKSHOP_ROOT}/data/kelvin}" && pwd)"
+DATASET_DIR="$(cd "${DATASET_DIR:-${WORKSHOP_ROOT}/data/kelvin_indentation}" && pwd)"
 YAML_DIR="${DATASET_DIR}/yaml"
 RENDERS_DIR="${DATASET_DIR}/renders"
 XRAY_DIR="${WORKSHOP_ROOT}/neural_xray/xray_projection_render"
